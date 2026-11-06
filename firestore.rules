@@ -1,0 +1,300 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1 & Phase 4.1: Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Reusable Hardened Global Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == 'masakinaada@gmail.com' && request.auth.token.email_verified == true)
+      );
+    }
+
+    // Validation Blueprint: Nikhom
+    function isValidNikhom(data) {
+      return data.keys().hasAll([
+        'id', 'name', 'shortName', 'province', 'region',
+        'capacity', 'currentResidents', 'vacancies', 'isFull',
+        'mapX', 'mapY', 'ownerId', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'name', 'shortName', 'province', 'region',
+        'capacity', 'currentResidents', 'vacancies', 'isFull',
+        'mapX', 'mapY', 'ownerId', 'updatedAt'
+      ]) &&
+      isValidId(data.id) && data.id.size() <= 64 &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 200 &&
+      data.shortName is string && data.shortName.size() >= 1 && data.shortName.size() <= 100 &&
+      data.province is string && data.province.size() >= 1 && data.province.size() <= 100 &&
+      data.region is string && data.region.size() <= 20 && data.region in ['north', 'northeast', 'central', 'south'] &&
+      data.capacity is number && data.capacity >= 0 && data.capacity <= 10000 &&
+      data.currentResidents is number && data.currentResidents >= 0 && data.currentResidents <= 10000 &&
+      data.vacancies is number && data.vacancies >= 0 && data.vacancies <= 10000 &&
+      data.isFull is bool &&
+      data.mapX is number && data.mapX >= 0 && data.mapX <= 100 &&
+      data.mapY is number && data.mapY >= 0 && data.mapY <= 100 &&
+      isValidId(data.ownerId) && data.ownerId == request.auth.uid &&
+      data.updatedAt == request.time;
+    }
+
+    // Validation Blueprint: Beneficiary
+    function isValidBeneficiary(data) {
+      return data.keys().hasAll([
+        'id', 'uniquePersonId', 'code', 'nationalId', 'fullName',
+        'gender', 'age', 'nikhomId', 'building', 'admissionDate',
+        'referringAgency', 'status', 'category', 'disabilityTypes',
+        'hasMultipleDisabilities', 'chronicDiseases', 'personalityTraits',
+        'tp1Profile', 'admissionHistory', 'dischargeHistory',
+        'initialHealth', 'healthHistory', 'civilRegistration',
+        'activities', 'activityDetails', 'monthlyActivityLogs',
+        'monthlyIncome', 'incomeSource', 'careerPreparation',
+        'irpHistory', 'rehabPlans', 'behaviorLogs', 'timeline',
+        'ownerId', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'uniquePersonId', 'code', 'nationalId', 'fullName',
+        'gender', 'age', 'nikhomId', 'building', 'admissionDate',
+        'referringAgency', 'status', 'category', 'disabilityTypes',
+        'hasMultipleDisabilities', 'chronicDiseases', 'personalityTraits',
+        'tp1Profile', 'admissionHistory', 'dischargeHistory',
+        'initialHealth', 'healthHistory', 'civilRegistration',
+        'activities', 'activityDetails', 'monthlyActivityLogs',
+        'monthlyIncome', 'incomeSource', 'careerPreparation',
+        'dischargeInfo', 'latestIRP',
+        'irpHistory', 'rehabPlans', 'behaviorLogs', 'timeline',
+        'ownerId', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      data.uniquePersonId is string && data.uniquePersonId.size() >= 1 && data.uniquePersonId.size() <= 64 &&
+      data.code is string && data.code.size() >= 1 && data.code.size() <= 64 &&
+      data.nationalId is string && data.nationalId.size() >= 1 && data.nationalId.size() <= 64 &&
+      data.fullName is string && data.fullName.size() >= 1 && data.fullName.size() <= 200 &&
+      data.gender is string && data.gender.size() <= 10 && data.gender in ['male', 'female'] &&
+      data.age is number && data.age >= 0 && data.age <= 150 &&
+      isValidId(data.nikhomId) && data.nikhomId.size() <= 64 &&
+      data.building is string && data.building.size() >= 1 && data.building.size() <= 120 &&
+      data.admissionDate is string && data.admissionDate.size() >= 1 && data.admissionDate.size() <= 40 &&
+      data.referringAgency is string && data.referringAgency.size() >= 1 && data.referringAgency.size() <= 200 &&
+      data.status is string && data.status.size() <= 20 && data.status in ['resident', 'discharged', 'prep_work'] &&
+      data.category is string && data.category.size() <= 20 && data.category in ['disabled', 'destitute'] &&
+      data.disabilityTypes is list && data.disabilityTypes.size() <= 6 &&
+      (data.disabilityTypes.size() == 0 || data.disabilityTypes[0] is number) &&
+      data.hasMultipleDisabilities is bool &&
+      data.chronicDiseases is string && data.chronicDiseases.size() <= 500 &&
+      data.personalityTraits is string && data.personalityTraits.size() <= 500 &&
+      data.tp1Profile is map && data.tp1Profile.size() <= 35 &&
+      data.admissionHistory is list && data.admissionHistory.size() <= 50 &&
+      (data.admissionHistory.size() == 0 || data.admissionHistory[0] is map) &&
+      data.dischargeHistory is list && data.dischargeHistory.size() <= 50 &&
+      (data.dischargeHistory.size() == 0 || data.dischargeHistory[0] is map) &&
+      data.initialHealth is map && data.initialHealth.size() <= 20 &&
+      data.healthHistory is list && data.healthHistory.size() <= 100 &&
+      (data.healthHistory.size() == 0 || data.healthHistory[0] is map) &&
+      data.civilRegistration is map && data.civilRegistration.size() <= 25 &&
+      data.activities is map && data.activities.size() <= 10 &&
+      data.activityDetails is list && data.activityDetails.size() <= 20 &&
+      (data.activityDetails.size() == 0 || data.activityDetails[0] is map) &&
+      data.monthlyActivityLogs is list && data.monthlyActivityLogs.size() <= 60 &&
+      (data.monthlyActivityLogs.size() == 0 || data.monthlyActivityLogs[0] is map) &&
+      data.monthlyIncome is number && data.monthlyIncome >= 0 && data.monthlyIncome <= 10000000 &&
+      data.incomeSource is string && data.incomeSource.size() <= 500 &&
+      data.careerPreparation is map && data.careerPreparation.size() <= 10 &&
+      (!('dischargeInfo' in data) || (data.dischargeInfo is map && data.dischargeInfo.size() <= 10)) &&
+      (!('latestIRP' in data) || (data.latestIRP is map && data.latestIRP.size() <= 15)) &&
+      data.irpHistory is list && data.irpHistory.size() <= 50 &&
+      (data.irpHistory.size() == 0 || data.irpHistory[0] is map) &&
+      data.rehabPlans is list && data.rehabPlans.size() <= 50 &&
+      (data.rehabPlans.size() == 0 || data.rehabPlans[0] is map) &&
+      data.behaviorLogs is list && data.behaviorLogs.size() <= 100 &&
+      (data.behaviorLogs.size() == 0 || data.behaviorLogs[0] is map) &&
+      data.timeline is list && data.timeline.size() <= 200 &&
+      (data.timeline.size() == 0 || data.timeline[0] is map) &&
+      isValidId(data.ownerId) && data.ownerId == request.auth.uid &&
+      data.updatedAt == request.time;
+    }
+
+    // Validation Blueprint: MonthlyReport
+    function isValidMonthlyReport(data) {
+      return data.keys().hasAll([
+        'id', 'yearTh', 'monthTh', 'reportDate', 'totalCapacity',
+        'totalResidents', 'maleCount', 'femaleCount', 'vacanciesCount',
+        'disabledCount', 'destituteCount', 'multipleDisabledCount',
+        'activitiesCount', 'earningBeneficiariesCount', 'totalIncomeBaht',
+        'averageIncomeBaht', 'careerPrepCounts', 'dischargeCounts',
+        'irpStats', 'executiveSummaryNarrative', 'status',
+        'ownerId', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'yearTh', 'monthTh', 'reportDate', 'totalCapacity',
+        'totalResidents', 'maleCount', 'femaleCount', 'vacanciesCount',
+        'disabledCount', 'destituteCount', 'multipleDisabledCount',
+        'activitiesCount', 'earningBeneficiariesCount', 'totalIncomeBaht',
+        'averageIncomeBaht', 'careerPrepCounts', 'dischargeCounts',
+        'irpStats', 'executiveSummaryNarrative', 'status', 'approvedBy',
+        'ownerId', 'updatedAt'
+      ]) &&
+      isValidId(data.id) && data.id.size() <= 64 &&
+      data.yearTh is number && data.yearTh >= 2500 && data.yearTh <= 2700 &&
+      data.monthTh is string && data.monthTh.size() >= 1 && data.monthTh.size() <= 64 &&
+      data.reportDate is string && data.reportDate.size() >= 1 && data.reportDate.size() <= 40 &&
+      data.totalCapacity is number && data.totalCapacity >= 0 && data.totalCapacity <= 100000 &&
+      data.totalResidents is number && data.totalResidents >= 0 && data.totalResidents <= 100000 &&
+      data.maleCount is number && data.maleCount >= 0 && data.maleCount <= 100000 &&
+      data.femaleCount is number && data.femaleCount >= 0 && data.femaleCount <= 100000 &&
+      data.vacanciesCount is number && data.vacanciesCount >= 0 && data.vacanciesCount <= 100000 &&
+      data.disabledCount is number && data.disabledCount >= 0 && data.disabledCount <= 100000 &&
+      data.destituteCount is number && data.destituteCount >= 0 && data.destituteCount <= 100000 &&
+      data.multipleDisabledCount is number && data.multipleDisabledCount >= 0 && data.multipleDisabledCount <= 100000 &&
+      data.activitiesCount is map && data.activitiesCount.size() <= 15 &&
+      data.earningBeneficiariesCount is number && data.earningBeneficiariesCount >= 0 && data.earningBeneficiariesCount <= 100000 &&
+      data.totalIncomeBaht is number && data.totalIncomeBaht >= 0 && data.totalIncomeBaht <= 100000000 &&
+      data.averageIncomeBaht is number && data.averageIncomeBaht >= 0 && data.averageIncomeBaht <= 10000000 &&
+      data.careerPrepCounts is map && data.careerPrepCounts.size() <= 10 &&
+      data.dischargeCounts is map && data.dischargeCounts.size() <= 10 &&
+      data.irpStats is map && data.irpStats.size() <= 10 &&
+      data.executiveSummaryNarrative is string && data.executiveSummaryNarrative.size() <= 5000 &&
+      data.status is string && data.status.size() <= 20 && data.status in ['draft', 'approved', 'published'] &&
+      (!('approvedBy' in data) || (data.approvedBy is string && data.approvedBy.size() <= 200)) &&
+      isValidId(data.ownerId) && data.ownerId == request.auth.uid &&
+      data.updatedAt == request.time;
+    }
+
+    // Validation Blueprint: DriveSyncConfig
+    function isValidDriveSyncConfig(data) {
+      return data.keys().hasAll([
+        'id', 'spreadsheetId', 'spreadsheetUrl', 'spreadsheetTitle',
+        'lastSyncedAt', 'syncedByEmail', 'autoSyncEnabled',
+        'ownerId', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'spreadsheetId', 'spreadsheetUrl', 'spreadsheetTitle',
+        'lastSyncedAt', 'syncedByEmail', 'autoSyncEnabled',
+        'ownerId', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      data.spreadsheetId is string && data.spreadsheetId.size() >= 1 && data.spreadsheetId.size() <= 128 &&
+      data.spreadsheetUrl is string && data.spreadsheetUrl.size() >= 1 && data.spreadsheetUrl.size() <= 500 &&
+      data.spreadsheetTitle is string && data.spreadsheetTitle.size() >= 1 && data.spreadsheetTitle.size() <= 200 &&
+      data.lastSyncedAt is string && data.lastSyncedAt.size() >= 1 && data.lastSyncedAt.size() <= 64 &&
+      data.syncedByEmail is string && data.syncedByEmail.size() >= 1 && data.syncedByEmail.size() <= 200 &&
+      data.autoSyncEnabled is bool &&
+      isValidId(data.ownerId) && data.ownerId == request.auth.uid &&
+      data.updatedAt == request.time;
+    }
+
+    // Collection 1: /nikhoms/{nikhomId}
+    match /nikhoms/{nikhomId} {
+      allow get: if isSignedIn() && isValidId(nikhomId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(nikhomId) && isValidNikhom(incoming());
+      allow update: if isSignedIn() && isValidId(nikhomId) && isValidNikhom(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().ownerId == existing().ownerId &&
+        (
+          isAdmin() ||
+          (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'shortName', 'province', 'region',
+            'capacity', 'currentResidents', 'vacancies', 'isFull',
+            'mapX', 'mapY', 'updatedAt'
+          ]))
+        );
+      allow delete: if isSignedIn() && isValidId(nikhomId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    // Collection 2: /beneficiaries/{beneficiaryId}
+    match /beneficiaries/{beneficiaryId} {
+      allow get: if isSignedIn() && isValidId(beneficiaryId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(beneficiaryId) && isValidBeneficiary(incoming());
+      allow update: if isSignedIn() && isValidId(beneficiaryId) && isValidBeneficiary(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().ownerId == existing().ownerId &&
+        (
+          isAdmin() ||
+          (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly([
+            'uniquePersonId', 'code', 'nationalId', 'fullName',
+            'gender', 'age', 'nikhomId', 'building', 'admissionDate',
+            'referringAgency', 'status', 'category', 'disabilityTypes',
+            'hasMultipleDisabilities', 'chronicDiseases', 'personalityTraits',
+            'tp1Profile', 'admissionHistory', 'dischargeHistory',
+            'initialHealth', 'healthHistory', 'civilRegistration',
+            'activities', 'activityDetails', 'monthlyActivityLogs',
+            'monthlyIncome', 'incomeSource', 'careerPreparation',
+            'dischargeInfo', 'latestIRP',
+            'irpHistory', 'rehabPlans', 'behaviorLogs', 'timeline',
+            'updatedAt'
+          ]))
+        );
+      allow delete: if isSignedIn() && isValidId(beneficiaryId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    // Collection 3: /reports/{reportId}
+    match /reports/{reportId} {
+      allow get: if isSignedIn() && isValidId(reportId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(reportId) && isValidMonthlyReport(incoming());
+      allow update: if isSignedIn() && isValidId(reportId) && isValidMonthlyReport(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().ownerId == existing().ownerId &&
+        (
+          isAdmin() ||
+          (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly([
+            'yearTh', 'monthTh', 'reportDate', 'totalCapacity',
+            'totalResidents', 'maleCount', 'femaleCount', 'vacanciesCount',
+            'disabledCount', 'destituteCount', 'multipleDisabledCount',
+            'activitiesCount', 'earningBeneficiariesCount', 'totalIncomeBaht',
+            'averageIncomeBaht', 'careerPrepCounts', 'dischargeCounts',
+            'irpStats', 'executiveSummaryNarrative', 'status', 'approvedBy',
+            'updatedAt'
+          ]))
+        );
+      allow delete: if isSignedIn() && isValidId(reportId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    // Collection 4: /drive_sync_configs/{configId}
+    match /drive_sync_configs/{configId} {
+      allow get: if isSignedIn() && isValidId(configId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(configId) && isValidDriveSyncConfig(incoming());
+      allow update: if isSignedIn() && isValidId(configId) && isValidDriveSyncConfig(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().ownerId == existing().ownerId &&
+        (
+          isAdmin() ||
+          (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly([
+            'spreadsheetId', 'spreadsheetUrl', 'spreadsheetTitle',
+            'lastSyncedAt', 'syncedByEmail', 'autoSyncEnabled',
+            'updatedAt'
+          ]))
+        );
+      allow delete: if isSignedIn() && isValidId(configId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    // Admins lookup collection (Read-only for self, never client-writable)
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && request.auth.uid == adminId;
+      allow list, create, update, delete: if false;
+    }
+  }
+}

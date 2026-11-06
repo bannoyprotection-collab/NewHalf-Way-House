@@ -1,0 +1,505 @@
+{
+  "entities": {
+    "Nikhom": {
+      "title": "Nikhom",
+      "description": "Self-Help Land Settlement or Highland Development Center unit in the Bannoi Nikhom project",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Nikhom unit",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full official Thai name of the unit",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "shortName": {
+          "type": "string",
+          "description": "Abbreviated Thai name of the unit",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "province": {
+          "type": "string",
+          "description": "Province where the unit is located",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "region": {
+          "type": "string",
+          "description": "Geographical region in Thailand",
+          "enum": ["north", "northeast", "central", "south"]
+        },
+        "capacity": {
+          "type": "number",
+          "description": "Maximum resident capacity"
+        },
+        "currentResidents": {
+          "type": "number",
+          "description": "Current active residents count"
+        },
+        "vacancies": {
+          "type": "number",
+          "description": "Remaining available beds/places"
+        },
+        "isFull": {
+          "type": "boolean",
+          "description": "Whether the unit is at full capacity"
+        },
+        "mapX": {
+          "type": "number",
+          "description": "Horizontal coordinate percentage on map"
+        },
+        "mapY": {
+          "type": "number",
+          "description": "Vertical coordinate percentage on map"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Authenticated user UID who owns/manages this workspace record",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last modification"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "shortName",
+        "province",
+        "region",
+        "capacity",
+        "currentResidents",
+        "vacancies",
+        "isFull",
+        "mapX",
+        "mapY",
+        "ownerId",
+        "updatedAt"
+      ]
+    },
+    "Beneficiary": {
+      "title": "Beneficiary",
+      "description": "Beneficiary dossier (TP1), health history, IRP evaluations, rehabilitation plans, and activities",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique document ID for the beneficiary",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "uniquePersonId": {
+          "type": "string",
+          "description": "Lifelong unique person identifier (e.g. BNN-69-0001)",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "code": {
+          "type": "string",
+          "description": "Registration code",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "nationalId": {
+          "type": "string",
+          "description": "13-digit National ID or status string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full name of the beneficiary",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "gender": {
+          "type": "string",
+          "enum": ["male", "female"]
+        },
+        "age": {
+          "type": "number"
+        },
+        "nikhomId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "building": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "admissionDate": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "referringAgency": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "status": {
+          "type": "string",
+          "enum": ["resident", "discharged", "prep_work"]
+        },
+        "category": {
+          "type": "string",
+          "enum": ["disabled", "destitute"]
+        },
+        "disabilityTypes": {
+          "type": "array",
+          "description": "Bounded list of disability type numbers (1-6)"
+        },
+        "hasMultipleDisabilities": {
+          "type": "boolean"
+        },
+        "chronicDiseases": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "personalityTraits": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "tp1Profile": {
+          "type": "object",
+          "description": "TP1 Dossier profile map"
+        },
+        "admissionHistory": {
+          "type": "array",
+          "description": "Bounded list of admission records"
+        },
+        "dischargeHistory": {
+          "type": "array",
+          "description": "Bounded list of discharge records"
+        },
+        "initialHealth": {
+          "type": "object",
+          "description": "Initial health record map"
+        },
+        "healthHistory": {
+          "type": "array",
+          "description": "Bounded list of follow-up health records"
+        },
+        "civilRegistration": {
+          "type": "object",
+          "description": "Civil registration and family tracing status map"
+        },
+        "activities": {
+          "type": "object",
+          "description": "Activity flags map"
+        },
+        "activityDetails": {
+          "type": "array",
+          "description": "Bounded list of activity work items"
+        },
+        "monthlyActivityLogs": {
+          "type": "array",
+          "description": "Bounded list of monthly activity income logs"
+        },
+        "monthlyIncome": {
+          "type": "number"
+        },
+        "incomeSource": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "careerPreparation": {
+          "type": "object",
+          "description": "Career preparation details map"
+        },
+        "dischargeInfo": {
+          "type": "object",
+          "description": "Latest discharge summary map"
+        },
+        "latestIRP": {
+          "type": "object",
+          "description": "Latest IRP evaluation summary map"
+        },
+        "irpHistory": {
+          "type": "array",
+          "description": "Bounded list of IRP evaluations"
+        },
+        "rehabPlans": {
+          "type": "array",
+          "description": "Bounded list of 5-dimension rehabilitation plans"
+        },
+        "behaviorLogs": {
+          "type": "array",
+          "description": "Bounded list of behavior observation logs"
+        },
+        "timeline": {
+          "type": "array",
+          "description": "Bounded list of chronological beneficiary events"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "uniquePersonId",
+        "code",
+        "nationalId",
+        "fullName",
+        "gender",
+        "age",
+        "nikhomId",
+        "building",
+        "admissionDate",
+        "referringAgency",
+        "status",
+        "category",
+        "disabilityTypes",
+        "hasMultipleDisabilities",
+        "chronicDiseases",
+        "personalityTraits",
+        "tp1Profile",
+        "admissionHistory",
+        "dischargeHistory",
+        "initialHealth",
+        "healthHistory",
+        "civilRegistration",
+        "activities",
+        "activityDetails",
+        "monthlyActivityLogs",
+        "monthlyIncome",
+        "incomeSource",
+        "careerPreparation",
+        "irpHistory",
+        "rehabPlans",
+        "behaviorLogs",
+        "timeline",
+        "ownerId",
+        "updatedAt"
+      ]
+    },
+    "MonthlyReport": {
+      "title": "MonthlyReport",
+      "description": "Executive monthly progress report for the 18 Nikhom units",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "yearTh": {
+          "type": "number"
+        },
+        "monthTh": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "reportDate": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "totalCapacity": {
+          "type": "number"
+        },
+        "totalResidents": {
+          "type": "number"
+        },
+        "maleCount": {
+          "type": "number"
+        },
+        "femaleCount": {
+          "type": "number"
+        },
+        "vacanciesCount": {
+          "type": "number"
+        },
+        "disabledCount": {
+          "type": "number"
+        },
+        "destituteCount": {
+          "type": "number"
+        },
+        "multipleDisabledCount": {
+          "type": "number"
+        },
+        "activitiesCount": {
+          "type": "object"
+        },
+        "earningBeneficiariesCount": {
+          "type": "number"
+        },
+        "totalIncomeBaht": {
+          "type": "number"
+        },
+        "averageIncomeBaht": {
+          "type": "number"
+        },
+        "careerPrepCounts": {
+          "type": "object"
+        },
+        "dischargeCounts": {
+          "type": "object"
+        },
+        "irpStats": {
+          "type": "object"
+        },
+        "executiveSummaryNarrative": {
+          "type": "string",
+          "maxLength": 5000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "approved", "published"]
+        },
+        "approvedBy": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "yearTh",
+        "monthTh",
+        "reportDate",
+        "totalCapacity",
+        "totalResidents",
+        "maleCount",
+        "femaleCount",
+        "vacanciesCount",
+        "disabledCount",
+        "destituteCount",
+        "multipleDisabledCount",
+        "activitiesCount",
+        "earningBeneficiariesCount",
+        "totalIncomeBaht",
+        "averageIncomeBaht",
+        "careerPrepCounts",
+        "dischargeCounts",
+        "irpStats",
+        "executiveSummaryNarrative",
+        "status",
+        "ownerId",
+        "updatedAt"
+      ]
+    },
+    "DriveSyncConfig": {
+      "title": "DriveSyncConfig",
+      "description": "Configuration and status of the linked Google Drive Master Spreadsheet and backups",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "spreadsheetId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "spreadsheetUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "spreadsheetTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "lastSyncedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "syncedByEmail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "autoSyncEnabled": {
+          "type": "boolean"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "spreadsheetId",
+        "spreadsheetUrl",
+        "spreadsheetTitle",
+        "lastSyncedAt",
+        "syncedByEmail",
+        "autoSyncEnabled",
+        "ownerId",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/nikhoms/{nikhomId}": {
+      "schema": {
+        "$ref": "#/entities/Nikhom"
+      },
+      "description": "Stores capacity, occupancy, and map coordinates for the 18 Nikhom units"
+    },
+    "/beneficiaries/{beneficiaryId}": {
+      "schema": {
+        "$ref": "#/entities/Beneficiary"
+      },
+      "description": "Stores beneficiary TP1 dossiers, health records, IRP evaluations, and rehabilitation plans"
+    },
+    "/reports/{reportId}": {
+      "schema": {
+        "$ref": "#/entities/MonthlyReport"
+      },
+      "description": "Stores monthly progress reports for executive review"
+    },
+    "/drive_sync_configs/{configId}": {
+      "schema": {
+        "$ref": "#/entities/DriveSyncConfig"
+      },
+      "description": "Stores linked Google Drive and Google Sheets synchronization metadata per owner"
+    }
+  }
+}
